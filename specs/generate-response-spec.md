@@ -52,7 +52,12 @@ Returns a fallback string (not an error) when `retrieved_chunks` is empty.
 *Write the exact system prompt instruction you will use to prevent the model from answering beyond the retrieved text. This is the most important design decision in this function.*
 
 ```
-[your answer here]
+Instructions: Given the user query and chunks that are most relevant to the user query, please give a response to the user query. Answer using only the rule text chunks `chunks` provided. If the answer is not contained in the provided text, do not answer anything or attempt to answer the question using outside knowledge, respond with "I couldn't find that in the loaded rule books.".
+
+chunks:
+{chunks}
+
+user_query: {query}
 ```
 
 ---

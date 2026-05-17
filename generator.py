@@ -34,6 +34,39 @@ def generate_response(query, retrieved_chunks):
             "I couldn't find anything relevant in the loaded rule books. "
             "Try rephrasing your question — or check that your ingestion pipeline is working."
         )
+    
+    system_message = '''*Instructions:* Given the user query and chunks that are most relevant to the user query, please
+    give a response to the user query. Answer using only the rule text chunks `chunks` provided. For each chunk you are provided the game and distance.
+    Distance is vector distance - the closer to 0 the more relevance. If the answer is not contained
+    in the provided text, do not answer anything or attempt to answer the question using outside knowledge, respond with "I couldn't
+    find that in the loaded rule books.".'''
 
+    def convert_chunks(chunks):
+        ret = ""
+        i = 1
+        for c in chunks:
+            c_string = f"Chunk {i} (Game: {c["game"]}; Distance: {c["distance"]}) : {c["text"]}\n"
+            ret += c_string
+            i += 1
+        return ret
+
+    def create_user_mssg(chunks, query):
+        return f"""
+
+        *chunks:*
+        {convert_chunks(chunks)}
+
+        *user_query:* {query}
+
+        """
+    
+    response = _client.chat.completions.create(
+        model = LLM_MODEL,
+        messages=[
+            {'role' : 'system', 'content' : system_message},
+            {'role' : 'user', 'content' : create_user_mssg(retrieved_chunks, query)},
+        ]
+
+    )
     # Your implementation here.
-    return "⚙️ Response generation not yet implemented. Complete Milestone 3 to activate answers."
+    return response.choices[0].message.content

@@ -45,7 +45,12 @@ Results should be ordered from most to least relevant (lowest to highest distanc
 *Describe how you will use `_collection.query()` to find relevant chunks. What arguments will you pass, and why?*
 
 ```
-[your answer here]
+I'll be calling _collection.query() like this:
+    results = _collection.query(
+        query_texts = [query],
+        n_results = n_results,
+        include=["documents", "metadatas","distances"]
+    )
 ```
 
 ---
@@ -55,7 +60,15 @@ Results should be ordered from most to least relevant (lowest to highest distanc
 *Sketch out what one item in your return list looks like as a concrete example. Where does each field come from in the query results?*
 
 ```
-[your answer here]
+  {               
+      "text": "A settlement may not be built adjacent to...",
+      "game": "catan",                                                                                                                                                                               
+      "distance": 0.18
+  }                                                                                                                                                                                                  
+                  
+  - text comes from results["documents"]                                                                                                                                                             
+  - game comes from results["metadatas"]
+  - distance comes from results["distances"] 
 ```
 
 ---
@@ -65,7 +78,15 @@ Results should be ordered from most to least relevant (lowest to highest distanc
 *`_collection.query()` returns nested lists. Describe what index you need to access to get the actual list of results for a single query, and why the nesting exists.*
 
 ```
-[your answer here]
+Nesting exists bc ChromaDB supports multiple queries at once. 
+
+  So results["documents"] looks like:
+  [                                                                                                                                                                                                  
+      ["chunk text 1", "chunk text 2", "chunk text 3"]  # ← index [0], your one query
+  ]                                                                                  
+                                                                                                                                                                                                     
+  You need results["documents"][0] to get the actual list. Same for metadatas and distances — always [0].
+                                                                                                             
 ```
 
 ---
@@ -75,7 +96,10 @@ Results should be ordered from most to least relevant (lowest to highest distanc
 *Will you filter out results above a certain distance score, or return all `n_results` regardless of how relevant they are? What are the tradeoffs of each approach?*
 
 ```
-[your answer here]
+- Return all `n_results` no matter what: It is simple and predictable, however, can include irrelevant chunks such as some with scores of 0.9
+- Filters out chunks above a distance cutoff (e.g. 0.5): It can have cleaner context for the LLM, however can return no results for weird queries.
+
+Approach: Don't filter out for now, we can let the generator decide. Once complete build test and reasses. 
 ```
 
 ---
@@ -97,10 +121,10 @@ Results should be ordered from most to least relevant (lowest to highest distanc
 **Test query and top result returned:**
 
 ```
-Query: [your test query]
-Top result game: [game name]
-Distance score: [score]
-Does it make sense? [yes / no / explain]
+Query: `What happens when you roll a 7?`
+Top result game: Catan
+Distance score: 0.466
+Does it make sense? no it just says `x, that hex produces no resources that turn, regardless of the number rolled.`
 ```
 
 **One thing about the query results that surprised you:**

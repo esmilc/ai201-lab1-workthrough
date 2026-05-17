@@ -68,5 +68,31 @@ def retrieve(query, n_results=N_RESULTS):
     if _collection.count() == 0:
         return []
 
-    # Your implementation here.
-    return []
+    res = _collection.query(
+        query_texts= [query],
+        n_results = n_results,
+        include=["documents", "metadatas", "distances"]
+    )
+
+    games = res["metadatas"][0] #List of dicts {"game" : NAME}
+    distances = res["distances"][0]
+    texts = res["documents"][0]
+
+    if not (len(games) == len(distances) == len(texts)):
+        print("Lengths are not the same!")
+        return []
+
+    ret = []
+    for i in range(len(games)):
+        ret.append(
+            {
+                "text" : texts[i],
+                "game" : games[i]['game'],
+                "distance" : distances[i]
+            }
+        )
+
+    for chunk in ret:
+        print(f"[{chunk['game']}] (dist: {chunk['distance']:.3f}) {chunk['text'][:80]}...")
+    #print(ret)
+    return ret
